@@ -7,6 +7,7 @@ namespace League\OpenAPIValidation\Schema;
 use cebe\openapi\spec\Schema as CebeSchema;
 use cebe\openapi\spec\Type as CebeType;
 use League\OpenAPIValidation\Schema\Exception\SchemaMismatch;
+use League\OpenAPIValidation\Schema\Exception\TypeMismatch;
 use League\OpenAPIValidation\Schema\Keywords\AllOf;
 use League\OpenAPIValidation\Schema\Keywords\AnyOf;
 use League\OpenAPIValidation\Schema\Keywords\Enum;
@@ -63,7 +64,22 @@ final class SchemaValidator implements Validator
 
             // The following properties are taken from the JSON Schema definition but their definitions were adjusted to the OpenAPI Specification.
             if (isset($schema->type)) {
-                (new Type($schema))->validate($data, $schema->type, $schema->format);
+                if (is_array($schema->type)) {
+                    $validate = 0;
+                    foreach ($schema->type as $localType) {
+                        try {
+                            (new Type($schema))->validate($data, $localType, $schema->format);
+                            break;
+                        } catch (\Throwable $exception) {
+                            continue;
+                        }
+                    }
+                    if ($validate === 0) {
+                        throw TypeMismatch::becauseTypeDoesNotMatch(implode(',',$schema->type), $data);
+                    }
+                } else {
+                    (new Type($schema))->validate($data, $schema->type, $schema->format);
+                }
             }
 
             // This keywords come directly from JSON Schema Validation, they are the same as in JSON schema

@@ -38,6 +38,11 @@ class Type extends BaseKeyword
     public function validate($data, string $type, ?string $format = null) : void
     {
         switch ($type) {
+            case 'null':
+                if ($data !== null || $data !== 'null') {
+                    throw TypeMismatch::becauseTypeDoesNotMatch('null', $data);
+                }
+                break;
             case CebeType::OBJECT:
                 if (! is_object($data) && ! (is_array($data) && ArrayHelper::isAssoc($data)) && $data !== []) {
                     throw TypeMismatch::becauseTypeDoesNotMatch(CebeType::OBJECT, $data);
