@@ -69,6 +69,7 @@ final class SchemaValidator implements Validator
                     foreach ($schema->type as $localType) {
                         try {
                             (new Type($schema))->validate($data, $localType, $schema->format);
+                            $validate = 1;
                             break;
                         } catch (\Throwable $exception) {
                             continue;
@@ -77,6 +78,7 @@ final class SchemaValidator implements Validator
                     if ($validate === 0) {
                         throw TypeMismatch::becauseTypeDoesNotMatch(implode(',',$schema->type), $data);
                     }
+                    unset($validate);
                 } else {
                     (new Type($schema))->validate($data, $schema->type, $schema->format);
                 }
